@@ -1,0 +1,384 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════════════
+   PSL NEXUS — Tailwind v4 Theme + Global Styles
+   ══════════════════════════════════════════════════ */
+
+@theme inline {
+  /* ── Colors ── */
+  --color-neon-green: #00ff88;
+  --color-neon-cyan: #00e5ff;
+  --color-neon-acid: #aaff00;
+  --color-dark-bg: #030a06;
+  --color-dark-panel: rgba(0, 255, 136, 0.03);
+  --color-dark-grid: rgba(0, 255, 136, 0.07);
+  --color-text-primary: #e8ffe8;
+  --color-text-muted: rgba(180, 255, 200, 0.5);
+  --color-border-neon: rgba(0, 255, 136, 0.2);
+  --color-error-red: #ff4466;
+
+  /* ── Fonts ── */
+  --font-orbitron: var(--font-family-orbitron);
+  --font-share-tech: var(--font-family-share-tech);
+  --font-rajdhani: var(--font-family-rajdhani);
+
+  /* ── Animations ── */
+  --animate-scan-move: scanMove 8s linear infinite;
+  --animate-orb-float: orbFloat 8s ease-in-out infinite;
+  --animate-orb-float-reverse: orbFloat 10s ease-in-out infinite reverse;
+  --animate-conn-pulse: connPulse 2s ease-in-out infinite;
+  --animate-blink: blink 1.5s ease-in-out infinite;
+  --animate-ticker-scroll: tickerScroll 30s linear infinite;
+  --animate-fade-slide-down: fadeSlideDown 0.8s ease both;
+  --animate-fade-slide-up: fadeSlideUp 0.8s ease both;
+  --animate-glitch1: glitch1 4s infinite;
+  --animate-glitch2: glitch2 4s infinite;
+}
+
+/* ── Keyframes ── */
+@keyframes scanMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 200px; }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-40px) scale(1.05); }
+}
+
+@keyframes connPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glitch1 {
+  0%, 90%, 100% { transform: translateX(0); opacity: 0; }
+  92% { transform: translateX(-4px); opacity: 1; }
+  94% { transform: translateX(4px); opacity: 1; }
+  96% { transform: translateX(-2px); opacity: 1; }
+  98% { transform: translateX(0); opacity: 0; }
+}
+
+@keyframes glitch2 {
+  0%, 88%, 100% { transform: translateX(0); opacity: 0; }
+  90% { transform: translateX(4px); opacity: 1; }
+  93% { transform: translateX(-4px); opacity: 1; }
+  95% { transform: translateX(2px); opacity: 1; }
+  97% { transform: translateX(0); opacity: 0; }
+}
+
+/* ══════════════════════════════════════════════════
+   GLOBAL BASE STYLES
+   ══════════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-dark-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-rajdhani), sans-serif;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── Grid Background ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--color-dark-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-dark-grid) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Scanline Overlay ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+  animation: scanMove 8s linear infinite;
+}
+
+/* ══════════════════════════════════════════════════
+   CUSTOM CURSOR
+   ══════════════════════════════════════════════════ */
+
+.custom-cursor {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  background: var(--color-neon-green);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, background 0.2s;
+  box-shadow: 0 0 30px rgba(0, 255, 136, 0.3), 0 0 60px rgba(0, 255, 136, 0.1);
+  mix-blend-mode: screen;
+}
+
+.custom-cursor.hovering {
+  width: 20px;
+  height: 20px;
+  background: var(--color-neon-cyan);
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(0, 255, 136, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999998;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.custom-cursor-ring.hovering {
+  width: 50px;
+  height: 50px;
+}
+
+/* ══════════════════════════════════════════════════
+   CLIP-PATH BUTTONS
+   ══════════════════════════════════════════════════ */
+
+.btn-clip-primary {
+  font-family: var(--font-share-tech), monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: var(--color-dark-bg);
+  background: var(--color-neon-green);
+  border: none;
+  padding: 16px 40px;
+  cursor: none;
+  text-transform: uppercase;
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+  font-weight: 700;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-clip-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn-clip-primary:hover {
+  /* box-shadow is hidden by clip-path, use drop-shadow filter */
+  filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.4)) drop-shadow(0 0 60px rgba(0, 229, 255, 0.2));
+}
+
+.btn-clip-primary:hover::after {
+  opacity: 0.1;
+}
+
+.btn-clip-secondary {
+  font-family: var(--font-share-tech), monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: var(--color-neon-green);
+  /* The element itself acts as the border */
+  background: var(--color-border-neon);
+  border: none;
+  padding: 16px 40px;
+  cursor: none;
+  text-transform: uppercase;
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+  transition: all 0.3s;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-clip-secondary::before {
+  content: '';
+  position: absolute;
+  inset: 1px; /* 1px border width */
+  background: var(--color-dark-bg);
+  /* Inner shape is slightly adjusted to match */
+  clip-path: polygon(11.5px 0%, 100% 0%, calc(100% - 11.5px) 100%, 0% 100%);
+  z-index: -1;
+  transition: background 0.3s;
+}
+
+.btn-clip-secondary:hover {
+  background: var(--color-neon-green);
+  filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.4));
+}
+
+.metaverse-container, .metaverse-container * {
+  cursor: crosshair !important;
+}
+
+.metaverse-container button, .metaverse-container button * {
+  cursor: pointer !important;
+}
+
+.btn-clip-secondary:hover::before {
+  background: #091a0e;
+}
+
+/* ══════════════════════════════════════════════════
+   GLITCH EFFECT (requires pseudo-elements with attr)
+   ══════════════════════════════════════════════════ */
+
+.glitch {
+  position: relative;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  font-family: var(--font-orbitron), monospace;
+  font-weight: 900;
+  font-size: inherit;
+  line-height: inherit;
+  background: linear-gradient(135deg, var(--color-neon-green), var(--color-neon-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glitch::before {
+  clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+  transform: translateX(-3px);
+  animation: glitch1 4s infinite;
+}
+
+.glitch::after {
+  clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+  transform: translateX(3px);
+  animation: glitch2 4s infinite;
+}
+
+/* ══════════════════════════════════════════════════
+   FEATURE CARD TOP BORDER REVEAL
+   ══════════════════════════════════════════════════ */
+
+.feature-card-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-neon-green), transparent);
+  transform: scaleX(0);
+  transition: transform 0.4s;
+}
+
+.feature-card-hover:hover::before {
+  transform: scaleX(1);
+}
+
+/* ══════════════════════════════════════════════════
+   NAV CTA CLIP PATH
+   ══════════════════════════════════════════════════ */
+
+.nav-cta-clip {
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+/* ══════════════════════════════════════════════════
+   HERO TAG BEFORE
+   ══════════════════════════════════════════════════ */
+
+.hero-tag-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 255, 136, 0.05);
+}
+
+/* ══════════════════════════════════════════════════
+   SECTION TAG LINE
+   ══════════════════════════════════════════════════ */
+
+.section-tag-line::before {
+  content: '';
+  display: block;
+  width: 30px;
+  height: 1px;
+  background: var(--color-neon-green);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+}
+
+/* ══════════════════════════════════════════════════
+   ARCH CONNECTOR PULSE
+   ══════════════════════════════════════════════════ */
+
+.arch-connector {
+  position: absolute;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(180deg, var(--color-neon-green), transparent);
+  transform: translateX(-50%);
+  animation: connPulse 2s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════════════
+   ROADMAP DOTS
+   ══════════════════════════════════════════════════ */
+
+.roadmap-dot-done {
+  background: var(--color-neon-cyan);
+}
+
+.roadmap-dot-future {
+  background: rgba(0, 255, 136, 0.3);
+  box-shadow: none !important;
+}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
