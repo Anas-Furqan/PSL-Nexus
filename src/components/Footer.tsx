@@ -28,7 +28,7 @@ export default function Footer() {
 
           <div className="competition-footer-links">
             <Link
-              href="https://github.com/dettol-warriors/psl-nexus"
+              href="https://github.com/Anas-Furqan/PSL-Nexus"
               target="_blank"
               rel="noreferrer"
               className="footer-link-pill"
