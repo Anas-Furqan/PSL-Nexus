@@ -40,6 +40,7 @@ export default function LandingStadiumPreview() {
     abi: economyAbi as Abi,
     functionName: "totalStaked",
     query: {
+      enabled: isConnected,
       refetchInterval: 10000,
     },
   });
@@ -55,8 +56,14 @@ export default function LandingStadiumPreview() {
     },
     {
       title: "Nexus Economy",
-      value: `${formatCompact(Number(formatEther((totalStaked as bigint | undefined) ?? BigInt(0))))} NEXUS`,
-      detail: "Total staked on protocol",
+      value: isConnected
+        ? `${formatCompact(
+            Number(formatEther((totalStaked as bigint | undefined) ?? BigInt(0)))
+          )} NEXUS`
+        : "Connect Wallet",
+      detail: isConnected
+        ? "Total staked on protocol"
+        : "Connect wallet to fetch live value",
     },
     {
       title: "Submission Track",
