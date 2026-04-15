@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Orbitron, Share_Tech_Mono, Rajdhani } from "next/font/google";
 import "./globals.css";
+import Web3Provider from "@/providers/Web3Provider";
+import { CursorProvider } from "@/components/CustomCursor";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const orbitron = Orbitron({
   subsets: ["latin"],
@@ -49,7 +53,15 @@ export default function RootLayout({
       lang="en"
       className={`${orbitron.variable} ${shareTechMono.variable} ${rajdhani.variable}`}
     >
-      <body>{children}</body>
+      <body suppressHydrationWarning>
+        <Web3Provider>
+          <CursorProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </CursorProvider>
+        </Web3Provider>
+      </body>
     </html>
   );
 }

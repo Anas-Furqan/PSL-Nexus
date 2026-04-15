@@ -1,53 +1,19 @@
 "use client";
 
-import { motion, useInView, useMotionValue, useTransform } from "framer-motion";
-import { useRef, useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useState, useCallback } from "react";
 import { useCursorContext } from "./CustomCursor";
 
 const stats = [
-  { count: 50, label: "Target (Million $)" },
-  { count: 10000, label: "Stadium NFT Plots" },
-  { count: 1000, label: "TPS on Wirefluid" },
-  { count: 182, label: "Staking APY %" },
+  { value: "Chain 92533", label: "WireFluid Testnet" },
+  { value: "Live 3D Arena", label: "PSL Nexus Stadium Twin" },
+  { value: "Land + Yield", label: "NexusEconomy x NexusLand" },
+  { value: "Entangled 2026", label: "Dettol Warriors Build" },
 ];
-
-function AnimatedCounter({
-  target,
-  inView,
-}: {
-  target: number;
-  inView: boolean;
-}) {
-  const [value, setValue] = useState(0);
-  const hasAnimated = useRef(false);
-
-  useEffect(() => {
-    if (!inView || hasAnimated.current) return;
-    hasAnimated.current = true;
-
-    const duration = 2000;
-    const step = target / (duration / 16);
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += step;
-      if (current >= target) {
-        current = target;
-        clearInterval(timer);
-      }
-      setValue(Math.floor(current));
-    }, 16);
-
-    return () => clearInterval(timer);
-  }, [inView, target]);
-
-  return <>{value.toLocaleString()}</>;
-}
 
 export default function Hero({ onEnterMetaverse }: { onEnterMetaverse?: () => void }) {
   const { onCursorEnter, onCursorLeave } = useCursorContext();
-  const statsRef = useRef<HTMLDivElement>(null);
-  const statsInView = useInView(statsRef, { once: true, amount: 0.5 });
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
@@ -141,19 +107,18 @@ export default function Hero({ onEnterMetaverse }: { onEnterMetaverse?: () => vo
           >
             Enter Metaverse
           </button>
-          <button
-            className="btn-clip-secondary"
-            onClick={() => document.getElementById('architecture')?.scrollIntoView({ behavior: 'smooth' })}
+          <Link
+            href="/dashboard"
+            className="btn-clip-secondary inline-block"
             onMouseEnter={onCursorEnter}
             onMouseLeave={onCursorLeave}
           >
-            View Whitepaper
-          </button>
+            Open Dashboard
+          </Link>
         </motion.div>
 
         {/* Stats */}
         <motion.div
-          ref={statsRef}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
@@ -170,7 +135,7 @@ export default function Hero({ onEnterMetaverse }: { onEnterMetaverse?: () => vo
                 className="font-orbitron text-[2rem] font-bold text-neon-green block"
                 style={{ textShadow: "0 0 10px rgba(0,255,136,0.4)" }}
               >
-                <AnimatedCounter target={stat.count} inView={statsInView} />
+                {stat.value}
               </span>
               <span className="font-share-tech text-[0.65rem] tracking-[0.2em] text-text-muted uppercase mt-1 block">
                 {stat.label}

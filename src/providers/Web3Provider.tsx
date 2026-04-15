@@ -1,8 +1,9 @@
 "use client";
 
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { WagmiProvider, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
+  getDefaultConfig,
   RainbowKitProvider,
   darkTheme,
   type Theme,
@@ -10,34 +11,38 @@ import {
 import "@rainbow-me/rainbowkit/styles.css";
 import { defineChain } from "viem";
 import { type ReactNode } from "react";
+import { Toaster } from "react-hot-toast";
 
-/* ── Wirefluid Testnet (Placeholder) ── */
+/* ── WireFluid Testnet ── */
 const wirefluidTestnet = defineChain({
-  id: 77777,
-  name: "Wirefluid Testnet",
+  id: 92533,
+  name: "WireFluid Testnet",
   nativeCurrency: {
-    name: "Wirefluid",
-    symbol: "WFL",
+    name: "WIRE",
+    symbol: "WIRE",
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ["https://rpc-testnet.wirefluid.com"],
+      http: ["https://evm.wirefluid.com"],
     },
   },
   blockExplorers: {
     default: {
-      name: "Wirefluid Explorer",
-      url: "https://explorer-testnet.wirefluid.com",
+      name: "WireFluid Scan",
+      url: "https://wirefluidscan.com/",
     },
   },
   testnet: true,
 });
 
-const config = createConfig({
+const config = getDefaultConfig({
+  appName: "PSL NEXUS",
+  projectId:
+    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "c1272830b5fe65cf8e5619fe7f1532f5",
   chains: [wirefluidTestnet],
   transports: {
-    [wirefluidTestnet.id]: http(),
+    [wirefluidTestnet.id]: http("https://evm.wirefluid.com"),
   },
   ssr: true,
 });
@@ -72,6 +77,17 @@ export default function Web3Provider({ children }: { children: ReactNode }) {
         <RainbowKitProvider theme={nexusTheme} modalSize="compact">
           {children}
         </RainbowKitProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: "#07150f",
+              color: "#e8ffe8",
+              border: "1px solid rgba(0, 255, 136, 0.25)",
+            },
+          }}
+        />
       </QueryClientProvider>
     </WagmiProvider>
   );

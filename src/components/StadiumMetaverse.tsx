@@ -218,34 +218,50 @@ function MetaverseScene() {
 }
 
 /* ── Main Export ── */
-export default function StadiumMetaverse({ onClose }: { onClose: () => void }) {
+export default function StadiumMetaverse({
+  onClose,
+  embedded = false,
+}: {
+  onClose?: () => void;
+  embedded?: boolean;
+}) {
   return (
-    <div className="metaverse-container fixed inset-0 z-[9999] bg-black w-screen h-screen">
-      {/* CRITICAL - Cyberpunk Exit Button Overlay */}
-      <button
-        onClick={onClose}
-        className="fixed top-6 left-6 z-[99999] bg-black/50 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-8 py-3 font-orbitron font-bold text-lg cursor-pointer transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] tracking-widest backdrop-blur-md rounded-md flex items-center gap-2"
-        style={{ pointerEvents: 'auto' }}
-      >
-        <span className="text-2xl leading-none -mt-1">✕</span> EXIT 3D
-      </button>
+    <div
+      className={
+        embedded
+          ? "metaverse-embedded relative w-full h-full bg-black"
+          : "metaverse-container fixed inset-0 z-[9999] bg-black w-screen h-screen"
+      }
+    >
+      {!embedded && (
+        <>
+          {/* CRITICAL - Cyberpunk Exit Button Overlay */}
+          <button
+            onClick={onClose}
+            className="fixed top-6 left-6 z-[99999] bg-black/50 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-8 py-3 font-orbitron font-bold text-lg cursor-pointer transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] tracking-widest backdrop-blur-md rounded-md flex items-center gap-2"
+            style={{ pointerEvents: "auto" }}
+          >
+            <span className="text-2xl leading-none -mt-1">✕</span> EXIT 3D
+          </button>
 
-      {/* Futuristic HUD Interlays */}
-      <div className="absolute bottom-6 left-6 z-40 pointer-events-none flex items-center gap-3">
-        <span className="block w-3 h-3 bg-neon-green rounded-full animate-blink shadow-neon" />
-        <span className="font-share-tech text-neon-green text-sm tracking-widest uppercase">
-          Live Rendering
-        </span>
-      </div>
+          {/* Futuristic HUD Interlays */}
+          <div className="absolute bottom-6 left-6 z-40 pointer-events-none flex items-center gap-3">
+            <span className="block w-3 h-3 bg-neon-green rounded-full animate-blink shadow-neon" />
+            <span className="font-share-tech text-neon-green text-sm tracking-widest uppercase">
+              Live Rendering
+            </span>
+          </div>
 
-      <div className="absolute bottom-6 right-6 z-40 pointer-events-none font-orbitron text-text-muted text-sm tracking-wide opacity-50">
-        v1.0.0 — WIREFLUID EVM
-      </div>
+          <div className="absolute bottom-6 right-6 z-40 pointer-events-none font-orbitron text-text-muted text-sm tracking-wide opacity-50">
+            v1.0.0 - WIREFLUID EVM
+          </div>
+        </>
+      )}
 
       {/* React Three Fiber Canvas */}
       <div className="w-full h-full relative z-10">
         <Canvas 
-          camera={{ position: [0, 8, 14], fov: 45 }} 
+          camera={embedded ? { position: [0, 7, 12], fov: 42 } : { position: [0, 8, 14], fov: 45 }}
           gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true }}
           shadows
         >
