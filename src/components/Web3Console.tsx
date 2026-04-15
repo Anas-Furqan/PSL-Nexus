@@ -5,12 +5,20 @@ import gsap from "gsap";
 import toast from "react-hot-toast";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import dynamic from "next/dynamic";
-import { formatEther, parseEther, type Abi, type Address } from "viem";
+import {
+  formatEther,
+  parseEther,
+  type Abi,
+  type Address,
+  type Hash,
+  WaitForTransactionReceiptTimeoutError,
+} from "viem";
 import {
   useAccount,
   useBalance,
   usePublicClient,
   useReadContract,
+  useReadContracts,
   useWriteContract,
 } from "wagmi";
 import { CONTRACT_ADDRESSES } from "@/constants/addresses";
@@ -22,6 +30,7 @@ const METADATA_URI = "https://psl-nexus.com/metadata/plot.json";
 const TOKEN_SCAN_LIMIT = 1200;
 const TOKEN_SCAN_BATCH = 120;
 const WEI_DECIMALS = BigInt("1000000000000000000");
+const SECONDS_PER_DAY = BigInt(86400);
 
 const StadiumMetaverse = dynamic(() => import("./StadiumMetaverse"), {
   ssr: false,
@@ -54,6 +63,23 @@ function formatLiveAmount(value: number) {
     minimumFractionDigits: 6,
     maximumFractionDigits: 6,
   });
+}
+
+function sanitizeTokenInput(input: string): string {
+  const cleaned = input.replace(/[^\d.]/g, "");
+  const parts = cleaned.split(".");
+  const whole = parts[0] ?? "";
+  const fraction = parts[1] ?? "";
+
+  if (parts.length > 2) {
+    return `${whole}.${parts.slice(1).join("")}`.slice(0, whole.length + 1 + 18);
+  }
+
+  if (fraction.length > 18) {
+    return `${whole}.${fraction.slice(0, 18)}`;
+  }
+
+  return cleaned;
 }
 
 export default function Web3Console() {
@@ -95,14 +121,23 @@ export default function Web3Console() {
     args: address ? [address] : undefined,
     query: {
       enabled: Boolean(address),
-      refetchInterval: 2000,
+      refetchInterval: 4000,
     },
   });
 
-  const { data: rewardRateWei } = useReadContract({
-    address: CONTRACT_ADDRESSES.ECONOMY,
-    abi: economyAbi as Abi,
-    functionName: "REWARD_RATE",
+  const { data: economyMeta } = useReadContracts({
+    contracts: [
+      {
+        address: CONTRACT_ADDRESSES.ECONOMY,
+        abi: economyAbi as Abi,
+        functionName: "REWARD_RATE",
+      },
+      {
+        address: CONTRACT_ADDRESSES.ECONOMY,
+        abi: economyAbi as Abi,
+        functionName: "nexusLandAddress",
+      },
+    ],
     query: {
       refetchInterval: 10000,
     },
@@ -130,12 +165,6 @@ export default function Web3Console() {
     },
   });
 
-  const { data: linkedLandAddress } = useReadContract({
-    address: CONTRACT_ADDRESSES.ECONOMY,
-    abi: economyAbi as Abi,
-    functionName: "nexusLandAddress",
-  });
-
   const stakedWei =
     ((stakeData as readonly [bigint, bigint, bigint] | undefined)?.[0] ??
       BigInt(0)) as bigint;
@@ -146,6 +175,8 @@ export default function Web3Console() {
     ((stakeData as readonly [bigint, bigint, bigint] | undefined)?.[2] ??
       BigInt(0)) as bigint;
   const ownedPlots = Number(nftBalance ?? BigInt(0));
+  const rewardRateWei = (economyMeta?.[0]?.result as bigint | undefined) ?? BigInt(0);
+  const linkedLandAddress = economyMeta?.[1]?.result as string | undefined;
   const isPremiumMember = useMemo(() => {
     return typeof nftBalance === "bigint" && nftBalance > BigInt(0);
   }, [nftBalance]);
@@ -174,7 +205,7 @@ export default function Web3Console() {
       return;
     }
 
-    const rewardRate = (rewardRateWei as bigint | undefined) ?? BigInt(0);
+    const rewardRate = rewardRateWei;
     const stakeAmountWei = stakedWei;
     const baseRewardsWei = rewardsWei;
 
@@ -187,7 +218,9 @@ export default function Web3Console() {
       const nowSec = BigInt(Math.floor(Date.now() / 1000));
       const elapsed = nowSec > lastUpdateWei ? nowSec - lastUpdateWei : BigInt(0);
 
-      let accruedWei = (stakeAmountWei * rewardRate * elapsed) / WEI_DECIMALS;
+      let accruedWei =
+        (stakeAmountWei * rewardRate * elapsed) /
+        (WEI_DECIMALS * SECONDS_PER_DAY);
 
       // Premium badge indicates boosted yield; reflect this in projected live earnings.
       if (ownedPlots > 0) {
@@ -350,18 +383,59 @@ export default function Web3Console() {
       await callback();
       await Promise.all([refetchStakeData(), refetchNftBalance()]);
       toast.success("Transaction Successful", { id: toastId });
-    } catch {
-      toast.error("Transaction Failed", { id: toastId });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.toLowerCase().includes("dropped")
+      ) {
+        toast.error("Transaction dropped. Please retry.", { id: toastId });
+      } else {
+        toast.error("Transaction Failed", { id: toastId });
+      }
     } finally {
       setIsWorking(false);
       setActiveTxLabel("");
     }
   };
 
+  const waitForReceiptOrThrow = async (hash: Hash) => {
+    if (!publicClient) {
+      throw new Error("Public client not available");
+    }
+
+    try {
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+        timeout: 120_000,
+      });
+
+      if (receipt.status !== "success") {
+        throw new Error("Transaction reverted");
+      }
+    } catch (error) {
+      if (error instanceof WaitForTransactionReceiptTimeoutError) {
+        throw new Error("Transaction dropped or pending too long");
+      }
+      throw error;
+    }
+  };
+
+  const parseAmountOrNull = (value: string): bigint | null => {
+    try {
+      const parsed = parseEther(value || "0");
+      if (parsed <= BigInt(0)) {
+        return null;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
+  };
+
   const onStake = async () => {
-    const parsedAmount = parseEther(stakeAmount || "0");
-    if (parsedAmount <= BigInt(0)) {
-      toast.error("Enter a valid stake amount.");
+    const parsedAmount = parseAmountOrNull(stakeAmount);
+    if (parsedAmount === null) {
+      toast.error("Enter a valid stake amount (max 18 decimals).");
       return;
     }
 
@@ -373,7 +447,7 @@ export default function Web3Console() {
         args: [CONTRACT_ADDRESSES.ECONOMY, parsedAmount],
       });
 
-      await publicClient?.waitForTransactionReceipt({ hash: approveHash });
+      await waitForReceiptOrThrow(approveHash);
 
       const stakeHash = await writeContractAsync({
         address: CONTRACT_ADDRESSES.ECONOMY,
@@ -382,14 +456,14 @@ export default function Web3Console() {
         args: [parsedAmount],
       });
 
-      await publicClient?.waitForTransactionReceipt({ hash: stakeHash });
+      await waitForReceiptOrThrow(stakeHash);
     });
   };
 
   const onWithdraw = async () => {
-    const parsedAmount = parseEther(withdrawAmount || "0");
-    if (parsedAmount <= BigInt(0)) {
-      toast.error("Enter a valid withdraw amount.");
+    const parsedAmount = parseAmountOrNull(withdrawAmount);
+    if (parsedAmount === null) {
+      toast.error("Enter a valid withdraw amount (max 18 decimals).");
       return;
     }
 
@@ -401,7 +475,7 @@ export default function Web3Console() {
         args: [parsedAmount],
       });
 
-      await publicClient?.waitForTransactionReceipt({ hash });
+      await waitForReceiptOrThrow(hash);
     });
   };
 
@@ -419,7 +493,7 @@ export default function Web3Console() {
         args: [address as `0x${string}`, METADATA_URI],
       });
 
-      await publicClient?.waitForTransactionReceipt({ hash });
+      await waitForReceiptOrThrow(hash);
     });
   };
 
@@ -580,12 +654,14 @@ export default function Web3Console() {
                     min="0"
                     step="0.000001"
                     className="web3-input"
+                    inputMode="decimal"
                     value={activeTab === "stake" ? stakeAmount : withdrawAmount}
                     onChange={(e) => {
+                      const sanitized = sanitizeTokenInput(e.target.value);
                       if (activeTab === "stake") {
-                        setStakeAmount(e.target.value);
+                        setStakeAmount(sanitized);
                       } else {
-                        setWithdrawAmount(e.target.value);
+                        setWithdrawAmount(sanitized);
                       }
                     }}
                   />
@@ -658,6 +734,13 @@ export default function Web3Console() {
             <strong className={contractsLinked ? "text-neon-green" : "text-error-red"}>
               {contractsLinked ? "Contracts Synchronized" : "Run setNexusLandAddress"}
             </strong>
+          </div>
+
+          <div className="impact-info-card mt-5 dash-enter">
+            <div className="impact-info-title">Impact Info</div>
+            <p className="impact-info-text">
+              The digital stadium economy unlocks fan-owned participation: land-backed memberships, transparent staking rewards, and a reusable financing loop that supports clubs, creators, and match-day ecosystems.
+            </p>
           </div>
         </div>
       </div>

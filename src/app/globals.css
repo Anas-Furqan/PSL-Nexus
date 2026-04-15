@@ -802,6 +802,28 @@ body::after {
   color: rgba(180, 255, 200, 0.6);
 }
 
+.impact-info-card {
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  background: linear-gradient(180deg, rgba(0, 255, 136, 0.08), rgba(0, 229, 255, 0.06));
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.impact-info-title {
+  font-family: var(--font-share-tech), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-neon-cyan);
+  margin-bottom: 8px;
+}
+
+.impact-info-text {
+  font-size: 0.92rem;
+  color: rgba(180, 255, 200, 0.72);
+  line-height: 1.55;
+}
+
 /* ══════════════════════════════════════════════════
    COMPETITION FOOTER
    ══════════════════════════════════════════════════ */

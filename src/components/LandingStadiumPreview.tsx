@@ -100,6 +100,13 @@ export default function LandingStadiumPreview() {
                 Enter Dashboard
               </Link>
             </div>
+
+            <div className="impact-info-card mt-6">
+              <div className="impact-info-title">Impact Info</div>
+              <p className="impact-info-text">
+                PSL Nexus converts passive fandom into a sustainable cricket economy: fans own digital stadium land, earn yield through participation, and recycle value into club ecosystems through transparent on-chain rewards.
+              </p>
+            </div>
           </div>
 
           <div className="landing-stadium-visual">
