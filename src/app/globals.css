@@ -497,6 +497,10 @@ body::after {
   padding: clamp(18px, 4vw, 34px);
 }
 
+.dashboard-route .dashboard-shell {
+  margin-top: 0;
+}
+
 .dashboard-topbar {
   display: flex;
   justify-content: space-between;
